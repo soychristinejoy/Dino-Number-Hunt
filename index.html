@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dino Roman Numeral Hunt</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Trebuchet MS", Arial, sans-serif;
+}
+
+body {
+    background: #173d2c;
+}
+
+/* =====================================================
+   GAME WORLD
+===================================================== */
+
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #65c9e7 0%,
+            #b9e8d2 40%,
+            #72ad55 40%,
+            #315d35 100%
+        );
+}
+
+/* =====================================================
+   BACKGROUND
+===================================================== */
+
+.sun {
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    right: 7%;
+    top: 5%;
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #fffbd4 0%,
+            #ffd75c 48%,
+            rgba(255,215,92,.15) 72%,
+            transparent 74%
+        );
+
+    box-shadow: 0 0 70px rgba(255,220,90,.55);
+}
+
+.cloud {
+    position: absolute;
+    z-index: 1;
+    font-size: clamp(45px, 6vw, 85px);
+    opacity: .75;
+    animation: cloudMove 24s ease-in-out infinite;
+}
+
+.cloud.one {
+    left: 4%;
+    top: 8%;
+}
+
+.cloud.two {
+    left: 45%;
+    top: 15%;
+    animation-delay: -10s;
+}
+
+@keyframes cloudMove {
+    0%,100% {
+        transform: translateX(-20px);
+    }
+
+    50% {
+        transform: translateX(60px);
+    }
+}
+
+.mountains {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    bottom: 38%;
+    height: 34%;
+
+    background: #4c8064;
+
+    clip-path:
+        polygon(
+            0 100%,
+            0 60%,
+            12% 25%,
+            24% 62%,
+            38% 17%,
+            51% 60%,
+            67% 10%,
+            82% 58%,
+            100% 23%,
+            100% 100%
+        );
+}
+
+.jungle {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    bottom: 29%;
+    height: 23%;
+
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+}
+
+.jungle span {
+    font-size: clamp(45px, 6vw, 90px);
+    filter: drop-shadow(0 8px 4px rgba(0,0,0,.25));
+}
+
+.ground {
+    position: absolute;
+    z-index: 4;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 55%;
+
+    background:
+        linear-gradient(
+            180deg,
+            #70b657,
+            #4c9547 40%,
+            #315f35
+        );
+}
+
+.ground::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: .18;
+
+    background-image:
+        radial-gradient(
+            circle,
+            #173b25 1px,
+            transparent 2px
+        );
+
+    background-size: 31px 28px;
+}
+
+/* =====================================================
+   DINO WALKING PATH
+===================================================== */
+
+.path {
+    position: absolute;
+    z-index: 6;
+
+    left: 27%;
+    right: 27%;
+    bottom: -5%;
+
+    height: 62%;
+
+    background:
+        radial-gradient(
+            ellipse,
+            #c9aa73,
+            #987749 70%,
+            #705434
+        );
+
+    opacity: .58;
+
+    clip-path:
+        polygon(
+            35% 0,
+            65% 0,
+            100% 100%,
+            0 100%
+        );
+}
+
+/* =====================================================
+   HUD
+===================================================== */
+
+.hud {
+    position: absolute;
+    z-index: 600;
+
+    top: 12px;
+    left: 15px;
+    right: 15px;
+
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.hud-box {
+    min-width: 145px;
+
+    padding: 7px 18px;
+
+    border-radius: 18px;
+
+    color: white;
+    text-align: center;
+
+    background: rgba(8,38,33,.86);
+
+    border: 1px solid rgba(255,255,255,.25);
+
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 8px 20px rgba(0,0,0,.2);
+}
+
+.hud-label {
+    display: block;
+    color: #a9d9c3;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.hud-value {
+    display: block;
+    margin-top: 2px;
+    font-size: 21px;
+    font-weight: 900;
+}
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.title {
+    position: absolute;
+    z-index: 500;
+
+    top: 68px;
+    left: 0;
+    right: 0;
+
+    text-align: center;
+
+    color: white;
+
+    font-size: clamp(25px, 4vw, 44px);
+    font-weight: 900;
+
+    text-shadow:
+        0 4px 0 #28543c,
+        0 7px 18px rgba(0,0,0,.3);
+}
+
+.subtitle {
+    position: absolute;
+    z-index: 500;
+
+    top: 120px;
+    left: 0;
+    right: 0;
+
+    text-align: center;
+
+    color: #245039;
+
+    font-size: clamp(12px, 1.5vw, 17px);
+    font-weight: 900;
+}
+
+/* =====================================================
+   SCATTERED GRASS ANSWER CONTAINER
+===================================================== */
+
+#answerContainer {
+    position: absolute;
+    z-index: 350;
+    top: 190px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+}
+
+.tile {
+    position: absolute;
+
+    width: clamp(110px, 13vw, 150px);
+    height: clamp(110px, 13vw, 150px);
+
+    background: transparent;
+    border: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    pointer-events: auto;
+
+    transform:
+        translate(-50%, -50%)
+        rotate(var(--rotation));
+
+    transition:
+        transform .18s,
+        filter .18s;
+}
+
+.food-emoji {
+    font-size: clamp(95px, 12vw, 135px);
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.45));
+    line-height: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.choice-text {
+    position: absolute;
+    color: #ffffff;
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 900;
+    text-shadow:
+        -4px -4px 0 #000,
+         4px -4px 0 #000,
+        -4px  4px 0 #000,
+         4px  4px 0 #000,
+         0 5px 10px rgba(0,0,0,0.95);
+}
+
+.tile.focus .food-emoji {
+    filter: drop-shadow(0 0 20px rgba(255,225,75,0.95)) drop-shadow(0 10px 10px rgba(0,0,0,0.45));
+}
+
+.tile:hover {
+    transform:
+        translate(-50%, -58%)
+        rotate(0deg)
+        scale(1.15);
+
+    filter: brightness(1.15);
+}
+
+.tile:active {
+    transform:
+        translate(-50%, -48%)
+        rotate(0deg)
+        scale(.95);
+}
+
+.tile.correct .food-emoji {
+    filter: drop-shadow(0 0 25px #8cff9f) drop-shadow(0 10px 10px rgba(0,0,0,0.45));
+}
+
+.tile.wrong {
+    animation: wrongTile .4s ease;
+}
+
+@keyframes wrongTile {
+    20% {
+        transform:
+            translate(-65%, -50%)
+            rotate(-10deg);
+    }
+
+    40% {
+        transform:
+            translate(-35%, -50%)
+            rotate(10deg);
+    }
+
+    60% {
+        transform:
+            translate(-60%, -50%)
+            rotate(-7deg);
+    }
+
+    80% {
+        transform:
+            translate(-40%, -50%)
+            rotate(7deg);
+    }
+}
+
+.tile.pop {
+    animation: popOut .35s ease forwards;
+}
+
+@keyframes popOut {
+    0% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3) rotate(10deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0) rotate(-20deg);
+        opacity: 0;
+    }
+}
+
+/* =====================================================
+   DINO GROUP
+===================================================== */
+
+#dinoGroup {
+    position: absolute;
+
+    z-index: 200;
+
+    left: 50%;
+    bottom: 7%;
+
+    width: clamp(180px, 21vw, 260px);
+    height: clamp(330px, 37vw, 420px);
+
+    transform: translateX(-50%);
+
+    transition:
+        left .8s cubic-bezier(.2,.8,.3,1);
+
+    pointer-events: none;
+}
+
+.target-label {
+    position: absolute;
+
+    left: 50%;
+    top: 0;
+
+    transform: translateX(-50%);
+
+    padding: 6px 15px;
+
+    border-radius: 20px;
+
+    color: white;
+
+    background:
+        rgba(18,65,47,.96);
+
+    font-size: clamp(10px, 1.2vw, 14px);
+    font-weight: 900;
+
+    white-space: nowrap;
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,.25);
+}
+
+.target-bubble {
+    position: absolute;
+
+    left: 50%;
+    top: 30px;
+
+    transform: translateX(-50%);
+
+    width: clamp(135px, 16vw, 205px);
+    height: clamp(100px, 12vw, 145px);
+
+    border-radius: 50%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle at 35% 25%,
+            white,
+            #eaf4eb
+        );
+
+    border: 6px solid #314f44;
+
+    box-shadow:
+        0 12px 30px rgba(0,0,0,.28),
+        0 0 0 5px rgba(255,224,65,.35);
+}
+
+.target-small {
+    color: #5d7168;
+
+    font-size: clamp(9px, 1vw, 12px);
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+}
+
+#targetValue {
+    margin-top: 3px;
+
+    color: #3f50ad;
+
+    font-size: clamp(40px, 5vw, 64px);
+
+    line-height: 1;
+
+    font-weight: 900;
+}
+
+.target-bubble::before {
+    content: "";
+
+    position: absolute;
+
+    width: 23px;
+    height: 23px;
+
+    left: 16px;
+    bottom: -25px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    border: 4px solid #314f44;
+}
+
+.target-bubble::after {
+    content: "";
+
+    position: absolute;
+
+    width: 11px;
+    height: 11px;
+
+    left: 3px;
+    bottom: -40px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    border: 3px solid #314f44;
+}
+
+#dino {
+    position: absolute;
+
+    left: 50%;
+    bottom: 0;
+
+    width: clamp(110px, 15vw, 190px);
+    height: clamp(120px, 17vw, 215px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transform: translateX(-50%);
+
+    font-size: clamp(85px, 12vw, 165px);
+
+    filter:
+        drop-shadow(
+            0 14px 7px rgba(0,0,0,.32)
+        );
+
+    pointer-events: none;
+}
+
+#dino.walking {
+    animation:
+        walking .2s ease-in-out infinite alternate;
+}
+
+@keyframes walking {
+    from {
+        transform:
+            translateX(-50%)
+            translateY(4px)
+            rotate(-3deg);
+    }
+
+    to {
+        transform:
+            translateX(-50%)
+            translateY(-7px)
+            rotate(3deg);
+    }
+}
+
+#dino.correct {
+    animation:
+        dinoCorrect .55s ease-in-out 2;
+}
+
+@keyframes dinoCorrect {
+    0% {
+        transform:
+            translateX(-50%)
+            scale(1);
+    }
+
+    45% {
+        transform:
+            translateX(-50%)
+            translateY(-15px)
+            scale(1.1);
+    }
+
+    75% {
+        transform:
+            translateX(-50%)
+            translateY(-3px)
+            scale(1.04);
+    }
+
+    100% {
+        transform:
+            translateX(-50%)
+            scale(1);
+    }
+}
+
+.feedback {
+    position: absolute;
+
+    z-index: 700;
+
+    left: 50%;
+    bottom: 10px;
+
+    transform: translateX(-50%);
+
+    min-width: min(500px, 82vw);
+
+    padding: 10px 20px;
+
+    border-radius: 17px;
+
+    color: white;
+
+    text-align: center;
+
+    background:
+        rgba(7,34,29,.88);
+
+    border:
+        1px solid rgba(255,255,255,.25);
+
+    backdrop-filter: blur(10px);
+
+    font-size: clamp(13px, 1.7vw, 19px);
+    font-weight: 900;
+}
+
+.success-pop {
+    position: fixed;
+
+    z-index: 900;
+
+    pointer-events: none;
+
+    font-size: 35px;
+
+    animation:
+        successPop .8s ease forwards;
+}
+
+@keyframes successPop {
+    0% {
+        opacity: 1;
+
+        transform:
+            translate(-50%, 0)
+            scale(.5);
+    }
+
+    50% {
+        opacity: 1;
+
+        transform:
+            translate(-50%, -60px)
+            scale(1.3);
+    }
+
+    100% {
+        opacity: 0;
+
+        transform:
+            translate(-50%, -120px)
+            scale(.8);
+    }
+}
+
+/* =====================================================
+   START SCREEN & MODAL
+===================================================== */
+
+#startScreen {
+    position: absolute;
+
+    z-index: 1000;
+
+    inset: 0;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    background:
+        linear-gradient(
+            180deg,
+            #15525d,
+            #246c52 55%,
+            #102f27
+        );
+}
+
+.start-card {
+    width: min(700px, 92vw);
+
+    padding: 32px;
+
+    border-radius: 32px;
+
+    background:
+        rgba(248,255,244,.97);
+
+    text-align: center;
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,.45);
+}
+
+.start-dino {
+    font-size: clamp(75px, 11vw, 120px);
+}
+
+.start-card h1 {
+    color: #18553f;
+
+    font-size:
+        clamp(30px, 5vw, 55px);
+
+    line-height: .95;
+
+    margin: 6px 0 12px;
+}
+
+.start-card p {
+    color: #52675b;
+
+    font-size:
+        clamp(14px, 1.9vw, 19px);
+
+    line-height: 1.5;
+
+    margin-bottom: 22px;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.how-to-button,
+.start-button,
+.again-button {
+    border: 0;
+
+    padding: 15px 28px;
+
+    border-radius: 17px;
+
+    color: white;
+
+    font-size: 19px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 7px 0 rgba(0,0,0,.2),
+        0 13px 25px rgba(0,0,0,.15);
+}
+
+.how-to-button {
+    background:
+        linear-gradient(
+            180deg,
+            #3ea885,
+            #1d6b51
+        );
+    box-shadow:
+        0 7px 0 #124332,
+        0 13px 25px rgba(0,0,0,.15);
+    width: 100%;
+    max-width: 320px;
+}
+
+.start-button,
+.again-button {
+    background:
+        linear-gradient(
+            180deg,
+            #ffb72f,
+            #e76e20
+        );
+    box-shadow:
+        0 7px 0 #9d4518,
+        0 13px 25px rgba(0,0,0,.2);
+    width: 100%;
+    max-width: 320px;
+}
+
+/* Modal Overlay */
+#helpModal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(0,0,0,0.65);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-card {
+    width: min(520px, 90vw);
+    background: #f8fff4;
+    padding: 30px;
+    border-radius: 26px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    border: 4px solid #28563e;
+}
+
+.modal-card h2 {
+    color: #18553f;
+    margin-bottom: 16px;
+    font-size: 26px;
+}
+
+.modal-text {
+    color: #52675b;
+    font-size: 17px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    font-weight: bold;
+}
+
+.close-button {
+    border: 0;
+    padding: 12px 28px;
+    border-radius: 14px;
+    color: white;
+    background: #18553f;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+/* =====================================================
+   END SCREEN
+===================================================== */
+
+#endScreen {
+    position: absolute;
+
+    z-index: 1100;
+
+    inset: 0;
+
+    display: none;
+
+    justify-content: center;
+    align-items: center;
+
+    background:
+        linear-gradient(
+            180deg,
+            #174e48,
+            #0d2927
+        );
+}
+
+.end-card {
+    width: min(620px, 90vw);
+
+    padding: 30px;
+
+    border-radius: 30px;
+
+    background: white;
+
+    color: #173d31;
+
+    text-align: center;
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,.45);
+}
+
+.end-dino {
+    font-size: 105px;
+}
+
+.end-card h1 {
+    color: #185640;
+
+    font-size:
+        clamp(32px, 5.5vw, 57px);
+}
+
+.end-stars {
+    margin: 10px 0;
+    font-size: 35px;
+}
+
+.end-score {
+    color: #ec7627;
+
+    font-size: 68px;
+
+    font-weight: 900;
+}
+
+.end-message {
+    color: #607067;
+
+    font-size: 17px;
+
+    line-height: 1.5;
+
+    margin: 10px 0 22px;
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 650px) {
+
+    .hud {
+        top: 6px;
+        left: 6px;
+        right: 6px;
+        gap: 5px;
+    }
+
+    .hud-box {
+        min-width: 105px;
+        padding: 6px;
+    }
+
+    .title {
+        top: 72px;
+    }
+
+    .subtitle {
+        top: 116px;
+        padding: 0 8px;
+    }
+
+    .feedback {
+        bottom: 4px;
+        padding: 8px 12px;
+    }
+
+    .start-card {
+        padding: 20px 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <!-- START SCREEN -->
+
+    <div id="startScreen">
+
+        <div class="start-card">
+
+            <div class="start-dino">🦖</div>
+
+            <h1>DINO NUMBER HUNT</h1>
+
+            <p>
+                Master numbers and Roman numerals with Dino!
+            </p>
+
+            <div class="button-group">
+                <button id="howToButton" class="how-to-button">
+                    HOW TO PLAY
+                </button>
+                <button id="startButton" class="start-button">
+                    START THE HUNT
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- HOW TO PLAY MODAL -->
+
+    <div id="helpModal">
+        <div class="modal-card">
+            <h2>HOW TO PLAY</h2>
+            <p class="modal-text">
+                Dino is looking for a number!<br>
+                Look inside the bubble and find the matching answer scattered on the grass.
+            </p>
+            <button id="closeModal" class="close-button">GOT IT!</button>
+        </div>
+    </div>
+
+
+    <!-- BACKGROUND -->
+
+    <div class="sun"></div>
+
+    <div class="cloud one">☁️</div>
+    <div class="cloud two">☁️</div>
+
+    <div class="mountains"></div>
+
+    <div class="jungle">
+        <span>🌴</span>
+        <span>🌳</span>
+        <span>🌴</span>
+        <span>🌲</span>
+        <span>🌳</span>
+        <span>🌴</span>
+    </div>
+
+    <div class="ground"></div>
+
+    <div class="path"></div>
+
+
+    <!-- HUD -->
+
+    <div class="hud">
+
+        <div class="hud-box">
+
+            <span class="hud-label">
+                SCORE
+            </span>
+
+            <span
+                id="score"
+                class="hud-value">
+                0
+            </span>
+
+        </div>
+
+        <div class="hud-box">
+
+            <span class="hud-label">
+                CHANCES
+            </span>
+
+            <span
+                id="lives"
+                class="hud-value">
+                ● ● ●
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- TITLE -->
+
+    <div class="title">
+        DINO NUMBER HUNT
+    </div>
+
+    <div class="subtitle">
+        Find the matching number or Roman numeral
+    </div>
+
+
+    <!-- =================================================
+         SCATTERED ANSWERS CONTAINER
+    ================================================= -->
+
+    <div id="answerContainer"></div>
+
+
+    <!-- =================================================
+         DINO + BUBBLE
+    ================================================= -->
+
+    <div id="dinoGroup">
+
+        <div
+            id="targetLabel"
+            class="target-label">
+
+            FIND THIS
+
+        </div>
+
+        <div
+            id="targetBubble"
+            class="target-bubble">
+
+            <div class="target-small">
+                DINO NEEDS
+            </div>
+
+            <div id="targetValue">
+                VII
+            </div>
+
+        </div>
+
+        <div id="dino">
+            🦖
+        </div>
+
+    </div>
+
+
+    <!-- FEEDBACK -->
+
+    <div
+        id="feedback"
+        class="feedback">
+
+        Find the matching answer.
+
+    </div>
+
+
+    <!-- END SCREEN -->
+
+    <div id="endScreen">
+
+        <div class="end-card">
+
+            <div class="end-dino">
+                🦖
+            </div>
+
+            <h1 id="endTitle">
+                GREAT JOB!
+            </h1>
+
+            <div
+                id="endStars"
+                class="end-stars">
+                ⭐⭐⭐⭐⭐
+            </div>
+
+            <div>
+                YOUR SCORE
+            </div>
+
+            <div
+                id="endScore"
+                class="end-score">
+                0
+            </div>
+
+            <p
+                id="endMessage"
+                class="end-message">
+            </p>
+
+            <button
+                id="againButton"
+                class="again-button">
+
+                PLAY AGAIN
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   ROMAN NUMERALS & FRUIT/FOOD EMOJIS
+===================================================== */
+
+const roman = {
+    1: "I",
+    2: "II",
+    3: "III",
+    4: "IV",
+    5: "V",
+    6: "VI",
+    7: "VII",
+    8: "VIII",
+    9: "IX",
+    10: "X"
+};
+
+const foodEmojis = {
+    1: "🍎",
+    2: "🍌",
+    3: "🍇",
+    4: "🍊",
+    5: "🍓",
+    6: "🍕",
+    7: "🍔",
+    8: "🍩",
+    9: "🍉",
+    10: "🍍"
+};
+
+
+/* =====================================================
+   GAME VARIABLES
+===================================================== */
+
+let score = 0;
+let lives = 3;
+
+let targetNumber = 6;
+let targetType = "number";
+let availableNumbers = [];
+
+let locked = false;
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const startScreen = document.getElementById("startScreen");
+const endScreen = document.getElementById("endScreen");
+const helpModal = document.getElementById("helpModal");
+const answerContainer = document.getElementById("answerContainer");
+const dinoGroup = document.getElementById("dinoGroup");
+const dino = document.getElementById("dino");
+const targetValue = document.getElementById("targetValue");
+const targetLabel = document.getElementById("targetLabel");
+const feedback = document.getElementById("feedback");
+
+document.getElementById("startButton").addEventListener("click", startGame);
+document.getElementById("againButton").addEventListener("click", startGame);
+
+document.getElementById("howToButton").addEventListener("click", function() {
+    helpModal.style.display = "flex";
+});
+
+document.getElementById("closeModal").addEventListener("click", function() {
+    helpModal.style.display = "none";
+});
+
+
+/* =====================================================
+   SHUFFLE
+===================================================== */
+
+function shuffle(array) {
+    return [...array].sort(
+        () => Math.random() - 0.5
+    );
+}
+
+
+/* =====================================================
+   NEW ROUND & POOL RESET
+===================================================== */
+
+function resetPool() {
+    availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+}
+
+function nextTarget() {
+    if (availableNumbers.length === 0) {
+        resetPool();
+    }
+    const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+    targetNumber = availableNumbers.splice(randomIndex, 1)[0];
+}
+
+
+/* =====================================================
+   NEW CHALLENGE
+===================================================== */
+
+function newChallenge() {
+    locked = false;
+    nextTarget();
+    targetType = Math.random() < 0.5 ? "number" : "roman";
+
+    if (targetType === "number") {
+        targetValue.textContent = targetNumber;
+        targetLabel.textContent = "FIND THE ROMAN NUMERAL";
+        feedback.textContent = `Find the Roman numeral for ${targetNumber}.`;
+    } else {
+        targetValue.textContent = roman[targetNumber];
+        targetLabel.textContent = "FIND THE NUMBER";
+        feedback.textContent = `Find the number for ${roman[targetNumber]}.`;
+    }
+
+    dinoGroup.style.left = "50%";
+    dino.className = "";
+
+    createAnswers();
+    updateHUD();
+}
+
+
+/* =====================================================
+   CREATE NON-OVERLAPPING FIXED GRID CHOICES
+===================================================== */
+
+function createAnswers() {
+    answerContainer.innerHTML = "";
+
+    const numbers = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+    // Adjusted safe coordinate slots ensuring zero overlapping with larger sizes
+    const leftSlots = [
+        { x: 15, y: 23 },
+        { x: 23, y: 42 },
+        { x: 13, y: 61 },
+        { x: 22, y: 80 },
+        { x: 14, y: 92 }
+    ];
+
+    const rightSlots = [
+        { x: 85, y: 23 },
+        { x: 77, y: 42 },
+        { x: 87, y: 61 },
+        { x: 78, y: 80 },
+        { x: 86, y: 92 }
+    ];
+
+    const shuffledLeftSlots = shuffle(leftSlots);
+    const shuffledRightSlots = shuffle(rightSlots);
+
+    numbers.forEach(function(number, index) {
+        let pos;
+        if (index < 5) {
+            pos = shuffledLeftSlots[index];
+        } else {
+            pos = shuffledRightSlots[index - 5];
+        }
+
+        createTile(number, answerContainer, pos.x, pos.y);
+    });
+}
+
+
+/* =====================================================
+   CREATE ONE TILE
+===================================================== */
+
+function createTile(number, container, x, y) {
+    const answerType = targetType === "number" ? "roman" : "number";
+    const tile = document.createElement("button");
+
+    tile.className = "tile " + answerType;
+
+    if (number >= 6) {
+        tile.classList.add("focus");
+    }
+
+    const emoji = foodEmojis[number];
+    const displayText = (answerType === "roman") ? roman[number] : number;
+
+    tile.innerHTML = `
+        <div class="food-emoji">
+            ${emoji}
+            <span class="choice-text">${displayText}</span>
+        </div>
+    `;
+
+    tile.dataset.value = number;
+    tile.style.left = x + "%";
+    tile.style.top = y + "%";
+    tile.style.setProperty("--rotation", (Math.random() * 20 - 10) + "deg");
+
+    tile.addEventListener("click", function() {
+        chooseAnswer(tile, number);
+    });
+
+    container.appendChild(tile);
+}
+
+
+/* =====================================================
+   MOVE DINO TO ANSWER
+===================================================== */
+
+function moveDinoTo(tile) {
+    const game = document.getElementById("game");
+    const gameRect = game.getBoundingClientRect();
+    const tileRect = tile.getBoundingClientRect();
+
+    const tileCenter = tileRect.left + tileRect.width / 2;
+
+    let x = (tileCenter - gameRect.left) / gameRect.width * 100;
+
+    x = Math.max(25, Math.min(75, x));
+
+    dino.className = "walking";
+    dinoGroup.style.left = x + "%";
+}
+
+
+/* =====================================================
+   ANSWER CLICK
+===================================================== */
+
+function chooseAnswer(tile, answer) {
+    if (locked) {
+        return;
+    }
+
+    locked = true;
+    moveDinoTo(tile);
+
+    setTimeout(function() {
+        if (answer === targetNumber) {
+            correctAnswer(tile);
+        } else {
+            wrongAnswer(tile);
+        }
+    }, 750);
+}
+
+
+/* =====================================================
+   CORRECT ANSWER
+===================================================== */
+
+function correctAnswer(tile) {
+    tile.classList.add("correct");
+    score++;
+
+    if (targetNumber >= 6) {
+        score++;
+    }
+
+    updateHUD();
+    dino.className = "correct";
+    feedback.style.color = "#8dffae";
+
+    if (targetType === "number") {
+        feedback.textContent = `Correct! ${targetNumber} = ${roman[targetNumber]}`;
+    } else {
+        feedback.textContent = `Correct! ${roman[targetNumber]} = ${targetNumber}`;
+    }
+
+    createSuccessEffect(tile);
+
+    setTimeout(function() {
+        tile.classList.add("pop");
+    }, 600);
+
+    setTimeout(function() {
+        feedback.style.color = "white";
+        newChallenge();
+    }, 1100);
+}
+
+
+/* =====================================================
+   WRONG ANSWER
+===================================================== */
+
+function wrongAnswer(tile) {
+    tile.classList.add("wrong");
+    lives--;
+
+    updateHUD();
+    dino.className = "";
+    feedback.style.color = "#ffd27a";
+    feedback.textContent = "Look at the bubble and try again.";
+
+    document.querySelectorAll(".tile").forEach(function(other) {
+        if (Number(other.dataset.value) === targetNumber) {
+            other.style.boxShadow = "0 0 0 5px #ffe34f, 0 0 30px #ffe34f";
+        }
+    });
+
+    if (lives <= 0) {
+        setTimeout(endGame, 900);
+        return;
+    }
+
+    setTimeout(function() {
+        locked = false;
+        feedback.style.color = "white";
+
+        if (targetType === "number") {
+            feedback.textContent = `Find the Roman numeral for ${targetNumber}.`;
+        } else {
+            feedback.textContent = `Find the number for ${roman[targetNumber]}.`;
+        }
+    }, 850);
+}
+
+
+/* =====================================================
+   SUCCESS EFFECT
+===================================================== */
+
+function createSuccessEffect(tile) {
+    const rect = tile.getBoundingClientRect();
+    const effect = document.createElement("div");
+
+    effect.className = "success-pop";
+    effect.textContent = "✨";
+
+    effect.style.left = (rect.left + rect.width / 2) + "px";
+    effect.style.top = rect.top + "px";
+
+    document.body.appendChild(effect);
+
+    setTimeout(function() {
+        effect.remove();
+    }, 900);
+}
+
+
+/* =====================================================
+   UPDATE HUD
+===================================================== */
+
+function updateHUD() {
+    document.getElementById("score").textContent = score;
+    document.getElementById("lives").textContent = "● ".repeat(lives) + "○ ".repeat(3 - lives);
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+function startGame() {
+    score = 0;
+    lives = 3;
+    locked = false;
+
+    resetPool();
+
+    startScreen.style.display = "none";
+    endScreen.style.display = "none";
+
+    updateHUD();
+    newChallenge();
+}
+
+
+/* =====================================================
+   END GAME
+===================================================== */
+
+function endGame() {
+    locked = true;
+    endScreen.style.display = "flex";
+
+    document.getElementById("endScore").textContent = score;
+
+    const title = document.getElementById("endTitle");
+    const stars = document.getElementById("endStars");
+    const message = document.getElementById("endMessage");
+
+    if (score >= 20) {
+        title.textContent = "ROMAN NUMERAL MASTER!";
+        stars.textContent = "⭐⭐⭐⭐⭐";
+        message.textContent = "Incredible job! You breezed right through the toughest numbers.";
+    } else if (score >= 10) {
+        title.textContent = "GREAT EXPLORER!";
+        stars.textContent = "⭐⭐⭐⭐";
+        message.textContent = "Fantastic work! You really know your way around numbers and Roman numerals.";
+    } else {
+        title.textContent = "NICE TRY!";
+        stars.textContent = "⭐⭐⭐";
+        message.textContent = "Good effort! Practice makes perfect—play again to get an even higher score!";
+    }
+}
+</script>
+
+</body>
+</html>
